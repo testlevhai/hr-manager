@@ -1,13 +1,14 @@
+import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, spacing } from '@/constants/theme';
 import type { DetailRowProps } from '@/types/components';
 
-export const DetailRow = ({ label, value }: DetailRowProps) => (
+export const DetailRow = memo(({ label, value }: DetailRowProps) => (
   <View style={styles.row}>
     <Text style={styles.label}>{label}</Text>
     <Text style={styles.value}>{value}</Text>
   </View>
-);
+));
 
 const styles = StyleSheet.create({
   row: {

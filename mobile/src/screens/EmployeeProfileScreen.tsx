@@ -4,6 +4,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { fetchEmployee } from '@/api/employeesApi';
 import { useAuth } from '@/context/AuthContext';
 import { useFetch } from '@/hooks/useFetch';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import { DetailRow } from '@/components/DetailRow';
 import { StatusBadge } from '@/components/StatusBadge';
 import { LoadingState } from '@/components/LoadingState';
@@ -28,6 +29,8 @@ export const EmployeeProfileScreen = () => {
     (signal) => fetchEmployee(employeeId, token, signal),
     [employeeId, token],
   );
+
+  useRefreshOnFocus(reload);
 
   const handleEditPress = useCallback(
     () => router.push(editEmployeeRoute(employeeId)),

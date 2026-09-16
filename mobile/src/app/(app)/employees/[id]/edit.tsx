@@ -1,5 +1,3 @@
-import { LoadingState } from '@/components/LoadingState';
+import { EditEmployeeScreen } from '@/screens/EditEmployeeScreen';
 
-const EditEmployeeRoute = () => <LoadingState />;
-
-export default EditEmployeeRoute;
+export default EditEmployeeScreen;

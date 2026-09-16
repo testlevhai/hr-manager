@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { EMPLOYMENT_STATUS } from '@/constants/employment';
 import { colors, radius, spacing } from '@/constants/theme';
@@ -23,7 +24,7 @@ const FALLBACK_BADGE = {
   background: colors.terminatedBadgeBackground,
 };
 
-export const StatusBadge = ({ status }: StatusBadgeProps) => {
+export const StatusBadge = memo(({ status }: StatusBadgeProps) => {
   const badge = BADGE_COLORS[status] ?? FALLBACK_BADGE;
 
   return (
@@ -31,7 +32,7 @@ export const StatusBadge = ({ status }: StatusBadgeProps) => {
       <Text style={[styles.label, { color: badge.text }]}>{status}</Text>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   badge: {

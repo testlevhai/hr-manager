@@ -3,7 +3,9 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  Pressable,
   StyleSheet,
+  Text,
   TextInput,
   View,
 } from 'react-native';
@@ -12,11 +14,12 @@ import { Stack, useRouter } from 'expo-router';
 import { fetchEmployees } from '@/api/employeesApi';
 import { useAuth } from '@/context/AuthContext';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import { EmployeeRow } from '@/components/EmployeeRow';
 import { LoadingState } from '@/components/LoadingState';
 import { ErrorState } from '@/components/ErrorState';
 import { EmptyState } from '@/components/EmptyState';
-import { employeeRoute } from '@/constants/appRoutes';
+import { APP_ROUTE, employeeRoute } from '@/constants/appRoutes';
 import { FIRST_PAGE, PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '@/constants/pagination';
 import { STRINGS } from '@/constants/strings';
 import { colors, radius, spacing } from '@/constants/theme';
@@ -103,6 +106,10 @@ export const EmployeesScreen = () => {
     setReloadCount((count) => count + 1);
   }, []);
 
+  useRefreshOnFocus(handleRetry);
+
+  const handleAddPress = useCallback(() => router.push(APP_ROUTE.NEW_EMPLOYEE), [router]);
+
   const handleEndReached = useCallback(() => {
     if (isLoading || isLoadingMore || employees.length >= total) {
       return;
@@ -161,7 +168,16 @@ export const EmployeesScreen = () => {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: STRINGS.EMPLOYEES_TITLE }} />
+      <Stack.Screen
+        options={{
+          title: STRINGS.EMPLOYEES_TITLE,
+          headerRight: () => (
+            <Pressable onPress={handleAddPress} hitSlop={spacing.md}>
+              <Text style={styles.addButton}>{STRINGS.ADD_EMPLOYEE}</Text>
+            </Pressable>
+          ),
+        }}
+      />
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -204,5 +220,10 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: spacing.lg,
+  },
+  addButton: {
+    fontSize: 28,
+    fontWeight: '400',
+    color: colors.primary,
   },
 });

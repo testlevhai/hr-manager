@@ -1,7 +1,8 @@
 import { apiRequest } from './client';
 import { API_PATH, employeePath } from '@/constants/apiPaths';
+import { HTTP_METHOD } from '@/constants/http';
 import { QUERY_PARAM } from '@/constants/queryParams';
-import type { EmployeeDetail, EmployeeListItem } from '@/types/employee';
+import type { EmployeeDetail, EmployeeInput, EmployeeListItem } from '@/types/employee';
 import type { Paginated } from '@/types/pagination';
 
 type FetchEmployeesParams = {
@@ -36,3 +37,24 @@ export const fetchEmployee = async (
   signal: AbortSignal,
 ): Promise<EmployeeDetail> =>
   apiRequest<EmployeeDetail>(employeePath(employeeId), { token, signal });
+
+export const createEmployee = async (
+  input: EmployeeInput,
+  token: string | null,
+): Promise<EmployeeDetail> =>
+  apiRequest<EmployeeDetail>(API_PATH.EMPLOYEES, {
+    method: HTTP_METHOD.POST,
+    body: input,
+    token,
+  });
+
+export const updateEmployee = async (
+  employeeId: number,
+  input: EmployeeInput,
+  token: string | null,
+): Promise<EmployeeDetail> =>
+  apiRequest<EmployeeDetail>(employeePath(employeeId), {
+    method: HTTP_METHOD.PUT,
+    body: input,
+    token,
+  });
