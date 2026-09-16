@@ -1,9 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import { env } from './env.ts';
-import { pool } from './db.ts';
+import { pool } from './db/pool.ts';
 import { errorHandler } from './errors.ts';
 import { ROUTE } from './constants/routes.ts';
+import { authRoutes } from './routes/authRoutes.ts';
 
 const app = express();
 
@@ -14,6 +15,8 @@ app.get(ROUTE.HEALTH, async (_req, res) => {
   await pool.query('SELECT 1');
   res.status(200).json({ ok: true });
 });
+
+app.use(ROUTE.AUTH, authRoutes);
 
 app.use(errorHandler);
 

@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { env } from './env.ts';
+import { env } from '../env.ts';
 
 export const pool = new pg.Pool({
   connectionString: env.DATABASE_URL,
