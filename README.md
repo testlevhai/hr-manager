@@ -44,10 +44,15 @@ database and returns `{"ok":true}`.
 ```bash
 cd mobile
 npm install
+cp .env.example .env    # then fill in the values
 npx expo start
 ```
 
-<!-- TODO: platform-specific notes (simulator vs device vs web) once the app is built -->
+Press `i` for the iOS Simulator (the primary target) or `w` for web.
+
+The backend must be running first. `EXPO_PUBLIC_API_BASE_URL` defaults to `http://localhost:3000`,
+which works on the iOS Simulator and on web. On a **physical device via Expo Go**, `localhost` is the
+phone, so set that variable to your machine's LAN address (e.g. `http://192.168.1.20:3000`).
 
 ## Environment variables
 
@@ -61,7 +66,16 @@ Backend (`backend/.env`, see `backend/.env.example`):
 | `JWT_SECRET` | Secret for signing the app's own JWTs, minimum 32 characters |
 | `ALLOW_DEV_LOGIN` | Enables `POST /api/auth/dev-login`; `true` for local development, `false` in production |
 
-No secrets are committed. `.env` is gitignored; `.env.example` contains placeholders only.
+Mobile (`mobile/.env`, see `mobile/.env.example`):
+
+| Variable | Purpose |
+| --- | --- |
+| `EXPO_PUBLIC_API_BASE_URL` | Backend base URL, defaults to `http://localhost:3000` |
+| `EXPO_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth web client ID. Public by design — an OAuth client ID is not a secret |
+
+No secrets are committed. `.env` is gitignored in both packages; the `.env.example` files contain
+placeholders only. The Google **client secret** is never used: ID-token verification is public-key,
+so the backend needs only the client ID.
 
 ## System structure
 
@@ -77,11 +91,19 @@ backend/
     schemas/         Zod schemas for request bodies, query strings and route params
     types/           shared response types
 mobile/
-  app/               screens, file-based routes
-  src/               API client, auth context, shared components
+  src/
+    app/             expo-router routes — each file is a 3-line re-export of a screen
+    screens/         one component per screen
+    components/      shared UI (rows, form fields, pickers, loading/error/empty states)
+    api/             fetch client and one module per resource
+    context/         auth state and session persistence
+    hooks/           useFetch, useDebouncedValue, useIsMounted, useRefreshOnFocus
+    constants/       strings, theme, enum vocabularies, route and API paths
+    types/           API response types and component prop types
 ```
 
 The layering rule is one-directional: routes → services → db. SQL appears only under `db/`.
+The mobile side mirrors it: route files hold no logic, exactly like the thin Express handlers.
 
 ### API
 
@@ -128,8 +150,6 @@ table is too low a selectivity for the planner to use it.
 
 ## Decisions and assumptions
 
-<!-- TODO: trim and finalise in the last pass -->
-
 - **The spec's "role" is stored as `job_title`**, to avoid collision with authorisation-role vocabulary.
 - **Any valid Google account can sign in.** The spec explicitly excludes a permissions system. In a
   real deployment the first change would be a domain allowlist.
@@ -153,6 +173,36 @@ table is too low a selectivity for the planner to use it.
   decoding foreign-key constraint names from PostgreSQL errors.
 - **Self-management is blocked** both by a `CHECK` constraint and a service-level 400. Longer
   reporting cycles (A → B → A) are **not** prevented.
+
+### Mobile
+
+- **Route files contain no logic.** Every file under `src/app/` re-exports a screen from
+  `src/screens/`, mirroring the thin Express handlers on the backend.
+- **No state-management, form or UI library.** One `useFetch` hook covers loading / error / abort
+  across four screens. A form library was considered and rejected: of the form's ~250 lines only
+  about 50 are state plumbing — the rest is JSX that no library removes — and two forms do not
+  justify the dependency.
+- **Pickers are built from `Pressable` pills** (types, statuses, departments) and a modal list for
+  the manager, rather than adding a picker dependency.
+- **Enum vocabularies are duplicated** in `mobile/src/constants/employment.ts`. The backend derives
+  them from Zod, but mobile is a separate package and cannot import across. The alternatives were a
+  shared workspace package (real monorepo tooling for a four-hour exercise) or serving the
+  vocabularies from an endpoint. Duplication was the cheapest honest option; the server remains the
+  authority, since an unknown value is rejected by the enum column.
+- **`typedRoutes` is enabled** and route constants carry explicit literal type annotations, so a
+  mistyped route is a compile error while the strings stay centralised.
+- **Screens refetch on focus** (`useRefreshOnFocus`) so the list and profile are never stale after a
+  save. Refetches are silent when data is already on screen — the spinner appears on first load
+  only, which avoids a flicker on every back-navigation. Cost: returning to the list resets it to
+  page 1, losing scroll position. A dirty-flag store would fix that and was judged not worth it.
+- **Creating an employee navigates to the new profile**, not back to the list. The list is sorted
+  alphabetically by surname, so a new employee often lands on page 2 or 3 and would appear to have
+  vanished.
+- **Employee list ordering is `last_name, first_name, id`.** The `id` tiebreaker makes pagination
+  deterministic — without it, offset paging can repeat or skip rows.
+- **Known wrinkle:** changing the search term while past page 1 issues one request with the stale
+  page number before the page resets. It is aborted immediately, so the result is correct; removing
+  it entirely would need a reducer or request-id guard.
 
 ## Google Sign-In
 
@@ -187,12 +237,42 @@ when disabled, so it does not exist in a production deployment.
 
 ## What was completed
 
-<!-- TODO: fill in during the final pass -->
+The full core flow works end to end.
+
+**Backend** — all required endpoints, each exercised manually against the live database:
+list employees (trigram search, department and status filters, pagination), get employee, create,
+update, get departments, get timeline, add timeline entry. Google ID-token verification, JWT
+issuance and auth middleware. Zod validation on every body, query string and route param, with
+parsed values reassigned so undeclared keys are stripped. One centralised error handler and one
+error shape. Five forward-only migrations including a 25-row seed.
+
+**Mobile** — Login (Google plus the documented dev fallback), Employees list with debounced search,
+infinite scroll and pull-to-refresh, Employee profile, Create employee, Edit employee, Employee
+timeline, and Add timeline entry. Loading, error and empty states on every screen; every fetch is
+abortable and cleaned up on unmount; submit buttons disable while saving.
 
 ## What was not completed
 
-<!-- TODO: fill in during the final pass -->
+- **Google Sign-In does not complete in Expo Go.** Server-side verification is implemented and
+  tested; the client handshake is blocked by OAuth client-type configuration. See the section above.
+- **No automated tests.** Explicitly out of scope per the brief, and the wrong use of the remaining
+  time against a working flow. Endpoints were verified manually; the service layer is the natural
+  first target for unit tests.
+- **No bonus features** — department/status filters (the API supports them, the UI does not),
+  employee photo, dashboard, delete/deactivate, audit log.
+- **Dates are validated text inputs (`YYYY-MM-DD`)**, not native date pickers. A picker is one more
+  dependency plus iOS/Android divergence, and it was scheduled behind core functionality.
 
 ## What I would do next
 
-<!-- TODO: fill in during the final pass -->
+1. **A development build with iOS and Android OAuth clients**, to finish Google Sign-In on device.
+2. **Tests** — service-layer unit tests around the 404/409 mapping, and one end-to-end test through
+   the employee create/read path.
+3. **Restrict sign-in to a company domain**, and add roles so salary is not visible to everyone.
+   Both are deliberate omissions the brief permits, and both are the first things a real deployment
+   would need.
+4. **Department and status filters in the UI** — the API and indexes already support them.
+5. **Cursor pagination** if the roster grew; offset paging is correct here but drifts under
+   concurrent writes.
+6. **Share the enum vocabularies** between backend and mobile via a workspace package, removing the
+   one piece of duplication in the codebase.
