@@ -10,7 +10,8 @@ import {
   listEmployees,
   updateEmployee,
 } from '../db/employeesDb.ts';
-import type { EmployeeDetail, EmployeeListItem, Paginated } from '../types/employee.ts';
+import type { EmployeeDetail, EmployeeListItem } from '../types/employee.ts';
+import type { Paginated } from '../types/pagination.ts';
 import type { EmployeeInput, EmployeeListQuery } from '../schemas/employeeSchemas.ts';
 
 const isUniqueViolation = (error: unknown): boolean =>

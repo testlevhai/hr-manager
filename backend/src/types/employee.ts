@@ -35,10 +35,3 @@ export type EmployeeDetail = {
   employmentStatus: EmploymentStatus;
   salary: number;
 };
-
-export type Paginated<TItem> = {
-  items: TItem[];
-  page: number;
-  pageSize: number;
-  total: number;
-};
