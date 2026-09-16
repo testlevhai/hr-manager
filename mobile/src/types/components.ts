@@ -17,3 +17,8 @@ export type EmployeeRowProps = {
   employee: EmployeeListItem;
   onPress: (employeeId: number) => void;
 };
+
+export type DetailRowProps = {
+  label: string;
+  value: string;
+};

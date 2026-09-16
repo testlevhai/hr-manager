@@ -1,7 +1,7 @@
 import { apiRequest } from './client';
-import { API_PATH } from '@/constants/apiPaths';
+import { API_PATH, employeePath } from '@/constants/apiPaths';
 import { QUERY_PARAM } from '@/constants/queryParams';
-import type { EmployeeListItem } from '@/types/employee';
+import type { EmployeeDetail, EmployeeListItem } from '@/types/employee';
 import type { Paginated } from '@/types/pagination';
 
 type FetchEmployeesParams = {
@@ -29,3 +29,10 @@ export const fetchEmployees = async (
     { token, signal },
   );
 };
+
+export const fetchEmployee = async (
+  employeeId: number,
+  token: string | null,
+  signal: AbortSignal,
+): Promise<EmployeeDetail> =>
+  apiRequest<EmployeeDetail>(employeePath(employeeId), { token, signal });
