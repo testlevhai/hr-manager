@@ -150,6 +150,22 @@ table is too low a selectivity for the planner to use it.
 
 ## Decisions and assumptions
 
+### Alternatives considered and rejected
+
+| Chosen | Rejected | Why |
+| --- | --- | --- |
+| Raw SQL via `pg` | An ORM | The schema and its relationships are the substance of the exercise; an ORM hides exactly what is being assessed. Cost: hand-written mapping, which `json_build_object` and SQL column aliases absorb. |
+| Plain `.sql` migrations + a ~30-line runner | `node-pg-migrate` or similar | One less dependency, and every line is explainable. Cost: no down-migrations — the project is forward-only. |
+| No build step (Node 24 strips types natively) | `tsx`, or compiling with `tsc` | Fewer moving parts; `tsc` is typecheck-only. Cost: `erasableSyntaxOnly` forbids `enum` and constructor parameter properties — enforced at compile time, so it cannot be tripped over accidentally. |
+| Express 5 | Express 4 | Async errors propagate to the error handler automatically, so there is no `asyncHandler` wrapper anywhere in the codebase. |
+| Native PostgreSQL enums | `text` + `CHECK` constraint | Self-documenting in `\d`, and a stronger statement of intent in the data model. Cost: adding a value needs `ALTER TYPE`, slightly more friction than editing a constraint. |
+| `int GENERATED ALWAYS AS IDENTITY` | UUID primary keys | Readable URLs, smaller indexes, no extension. Cost: ids are enumerable — irrelevant behind authentication for an internal tool. |
+| Controlled form state (~50 lines) | `react-hook-form` + resolver | Of the form's ~250 lines only ~50 are state plumbing; the rest is JSX no library removes. Two forms with independent field validation do not justify two dependencies. Repetition was removed with a field config array instead. |
+| Pressable pills and a modal list | `@react-native-picker/picker` | No dependency, full control of styling, and better suited to three-to-six options. |
+| One `useFetch` hook | Repeating `useState`/`useEffect`/`AbortController` per screen | Used by four screens; it is the only abstraction introduced that was not required by a specific feature. |
+
+### Detail
+
 - **The spec's "role" is stored as `job_title`**, to avoid collision with authorisation-role vocabulary.
 - **Any valid Google account can sign in.** The spec explicitly excludes a permissions system. In a
   real deployment the first change would be a domain allowlist.
@@ -173,6 +189,14 @@ table is too low a selectivity for the planner to use it.
   decoding foreign-key constraint names from PostgreSQL errors.
 - **Self-management is blocked** both by a `CHECK` constraint and a service-level 400. Longer
   reporting cycles (A → B → A) are **not** prevented.
+- **`/api/auth/dev-login` returns `404` when disabled, not `403`.** A disabled endpoint should not
+  confirm that it exists.
+- **`req.authUser` is typed as required rather than optional.** Mildly unsound — an unauthenticated
+  request has no such property — but every route that reads it sits behind `requireAuth`, and the
+  alternative puts a non-null assertion in every handler.
+- **The trigram index was verified, not assumed.** `EXPLAIN` with `enable_seqscan = off` confirms the
+  planner uses `employees_full_name_trgm_idx` for the search predicate. Had the index expression not
+  matched the query expression exactly, the index would have been silent dead weight.
 
 ### Mobile
 
