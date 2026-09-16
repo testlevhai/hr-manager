@@ -5,6 +5,9 @@ import { pool } from './db/pool.ts';
 import { errorHandler } from './errors.ts';
 import { ROUTE } from './constants/routes.ts';
 import { authRoutes } from './routes/authRoutes.ts';
+import { departmentRoutes } from './routes/departmentRoutes.ts';
+import { employeeRoutes } from './routes/employeeRoutes.ts';
+import { requireAuth } from './middleware/authMiddleware.ts';
 
 const app = express();
 
@@ -17,6 +20,8 @@ app.get(ROUTE.HEALTH, async (_req, res) => {
 });
 
 app.use(ROUTE.AUTH, authRoutes);
+app.use(ROUTE.DEPARTMENTS, requireAuth, departmentRoutes);
+app.use(ROUTE.EMPLOYEES, requireAuth, employeeRoutes);
 
 app.use(errorHandler);
 
