@@ -1,5 +1,6 @@
 import type { EmployeeInput, EmployeeListItem, ManagerSummary } from './employee';
 import type { EmployeeFormValues } from './form';
+import type { TimelineEntry } from './timeline';
 
 export type ErrorStateProps = {
   message: string;
@@ -24,6 +25,10 @@ export type DetailRowProps = {
   value: string;
 };
 
+export type TimelineEntryRowProps = {
+  entry: TimelineEntry;
+};
+
 export type FormFieldProps = {
   name: string;
   label: string;
@@ -32,6 +37,7 @@ export type FormFieldProps = {
   error?: string;
   placeholder?: string;
   keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numeric';
+  multiline?: boolean;
   editable: boolean;
 };
 

@@ -1,5 +1,3 @@
-import { LoadingState } from '@/components/LoadingState';
+import { EmployeeTimelineScreen } from '@/screens/EmployeeTimelineScreen';
 
-const EmployeeTimelineRoute = () => <LoadingState />;
-
-export default EmployeeTimelineRoute;
+export default EmployeeTimelineScreen;

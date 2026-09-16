@@ -54,4 +54,14 @@ export const STRINGS = {
   INVALID_DATE: 'Use format YYYY-MM-DD',
   INVALID_SALARY: 'Enter a number of 0 or more',
   DATE_PLACEHOLDER: 'YYYY-MM-DD',
+
+  TIMELINE_TITLE: 'Timeline',
+  NEW_TIMELINE_ENTRY_TITLE: 'New entry',
+  NO_TIMELINE_ENTRIES: 'No timeline entries yet',
+  ADD_TIMELINE_ENTRY: '+',
+  FIELD_EVENT_TYPE: 'Event type',
+  FIELD_EVENT_DATE: 'Event date',
+  FIELD_TITLE: 'Title',
+  FIELD_CONTENT: 'Details',
+  ENTRY_AUTHOR_PREFIX: 'Logged by',
 };

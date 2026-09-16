@@ -11,3 +11,10 @@ export const EMPLOYEE_FIELD = {
   EMPLOYMENT_STATUS: 'employmentStatus',
   SALARY: 'salary',
 };
+
+export const TIMELINE_FIELD = {
+  EVENT_TYPE: 'eventType',
+  EVENT_DATE: 'eventDate',
+  TITLE: 'title',
+  CONTENT: 'content',
+};

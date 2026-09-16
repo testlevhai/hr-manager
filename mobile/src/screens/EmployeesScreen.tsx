@@ -29,7 +29,7 @@ const keyExtractor = (employee: EmployeeListItem) => String(employee.id);
 
 export const EmployeesScreen = () => {
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, signOut } = useAuth();
 
   const [search, setSearch] = useState(STRINGS.EMPTY);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
@@ -171,6 +171,11 @@ export const EmployeesScreen = () => {
       <Stack.Screen
         options={{
           title: STRINGS.EMPLOYEES_TITLE,
+          headerLeft: () => (
+            <Pressable onPress={signOut} hitSlop={spacing.md}>
+              <Text style={styles.signOutButton}>{STRINGS.SIGN_OUT}</Text>
+            </Pressable>
+          ),
           headerRight: () => (
             <Pressable onPress={handleAddPress} hitSlop={spacing.md}>
               <Text style={styles.addButton}>{STRINGS.ADD_EMPLOYEE}</Text>
@@ -224,6 +229,10 @@ const styles = StyleSheet.create({
   addButton: {
     fontSize: 28,
     fontWeight: '400',
+    color: colors.primary,
+  },
+  signOutButton: {
+    fontSize: 15,
     color: colors.primary,
   },
 });

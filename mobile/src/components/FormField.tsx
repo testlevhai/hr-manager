@@ -4,16 +4,27 @@ import { colors, radius, spacing } from '@/constants/theme';
 import type { FormFieldProps } from '@/types/components';
 
 export const FormField = memo(
-  ({ name, label, value, onChange, error, placeholder, keyboardType, editable }: FormFieldProps) => (
+  ({
+    name,
+    label,
+    value,
+    onChange,
+    error,
+    placeholder,
+    keyboardType,
+    multiline,
+    editable,
+  }: FormFieldProps) => (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
-        style={[styles.input, error ? styles.inputError : null]}
+        style={[styles.input, multiline ? styles.inputMultiline : null, error ? styles.inputError : null]}
         value={value}
         onChangeText={(text) => onChange(name, text)}
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
         keyboardType={keyboardType}
+      multiline={multiline}
         autoCapitalize="none"
         autoCorrect={false}
         editable={editable}
@@ -41,6 +52,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     color: colors.text,
     fontSize: 15,
+  },
+  inputMultiline: {
+    minHeight: 110,
+    textAlignVertical: 'top',
   },
   inputError: {
     borderColor: colors.danger,

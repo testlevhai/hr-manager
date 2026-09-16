@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { STRINGS } from '@/constants/strings';
 
 export const useFetch = <TData>(
@@ -9,6 +9,7 @@ export const useFetch = <TData>(
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [reloadCount, setReloadCount] = useState(0);
+  const hasData = useRef(false);
 
   const reload = useCallback(() => setReloadCount((count) => count + 1), []);
 
@@ -17,13 +18,16 @@ export const useFetch = <TData>(
     let isActive = true;
 
     const run = async () => {
-      setIsLoading(true);
+      if (!hasData.current) {
+        setIsLoading(true);
+      }
       setError(null);
 
       try {
         const result = await fetcher(controller.signal);
         if (isActive) {
           setData(result);
+          hasData.current = true;
         }
       } catch (caught) {
         if (isActive && !controller.signal.aborted) {
