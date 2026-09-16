@@ -156,11 +156,34 @@ table is too low a selectivity for the planner to use it.
 
 ## Google Sign-In
 
-<!-- TODO: finalise once the mobile login screen is built -->
-
 The backend performs real server-side verification: the Google ID token's signature is checked
 against Google's public keys, the audience is checked against `GOOGLE_CLIENT_ID`, and the email must
-be verified. A client claim of identity is never trusted.
+be verified. A client claim of identity is never trusted. `POST /api/auth/google` returns `401` for
+any token that fails these checks.
+
+### Known blocker: Google Sign-In does not complete in Expo Go
+
+Signing in with Google from the iOS Simulator fails with `Error 400: invalid_request` — *"this app
+doesn't comply with Google's OAuth 2.0 policy for keeping apps secure."*
+
+**Cause.** Google accepts custom-scheme redirect URIs (`hrsystem://…`, `exp://…`) only for OAuth
+clients of type **iOS** or **Android**. This project has a **Web** client, which accepts `http(s)`
+redirect URIs only. Expo Go cannot register a native custom scheme with Google, so the native
+handshake is rejected before the app is ever reached.
+
+**What this does and does not affect.** It is purely a client-side OAuth configuration limit. The
+server-side verification described above is implemented and tested; nothing in the API is stubbed.
+
+**The fix, with more time.** Create iOS and Android OAuth clients in Google Cloud Console, then move
+off Expo Go to a development build (`npx expo run:ios`, or EAS Build) so the app owns a real bundle
+identifier and custom scheme. That is a build-infrastructure task rather than an application-code
+one, which is why it was out of scope for the time budget.
+
+**Workaround used.** `POST /api/auth/dev-login` accepts an email and issues **the same JWT** the
+Google path issues — same signing key, same claims, same expiry. Auth middleware, every protected
+endpoint, and timeline author attribution behave identically no matter which endpoint minted the
+token; only the Google handshake is bypassed. It is gated by `ALLOW_DEV_LOGIN` and returns `404`
+when disabled, so it does not exist in a production deployment.
 
 ## What was completed
 
