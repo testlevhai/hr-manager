@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# build output
+dist/
+build/
+
+# expo / react native
+.expo/
+.expo-shared/
+ios/Pods/
+ios/build/
+android/build/
+android/app/build/
+android/.gradle/
+*.jks
+*.keystore
+
+# os / editor
+.DS_Store
+.vscode/
+.idea/
